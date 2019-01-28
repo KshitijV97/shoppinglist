@@ -1,69 +1,104 @@
+#The smtplib module defines an SMTP client session object
+# that can be used to send mail to any Internet machine with an daemon
 import smtplib
 
+# EmailMessage provides the core functionality for setting and querying header fields
+# For accessing message bodies, and for creating or modifying structured messages.
 from email.message import EmailMessage
 
+#The getpass module provides a portable way to handle password prompts from terminal securely.
 from getpass import getpass
 
-name = str(input("Name: "))
-email = str(input("Email: "))
-password = str(getpass("Password: "))
-recipient = str(input("Recipient's email: "))
-
-while True:
-    try:
-        productsnm = int(input(f"Hi, {name}!\nHow many products do you want to add to the shopping list? " ))
-    except ValueError:
-        print ("Please input a number.")
-    else:
-        break
-
-products = []
+#Declarations
+name = ""
+GMAIL_USERNAME = ""
+GMAIL_PASSWORD = ""
+recipient = ""
 quantities = []
+products = []
 
-for x in range(int(productsnm)):
 
-    product = str(input("Input the product name: "))
+def get_details():
+    global GMAIL_PASSWORD,GMAIL_USERNAME,recipient
+    # Accept Sender and Recipient details
+    name = str(input("Name:   "))
+    GMAIL_USERNAME = str(input("Email:  "))
+    GMAIL_PASSWORD = str(input("Password:   "))
+    recipient = str(input("Recipient"))
 
+
+def accept_list():
+    global products, quantities
+    # To accept Number of Products to be added in List from user
     while True:
         try:
-            quantity = int(input("Input the product quantity: "))
+            n = int(input(f"Hello {name}, How many products do you want to add to the shopping cart?"))
         except ValueError:
-            print ("Please input a number.")
+            print("Please enter a number")
         else:
             break
 
-    products.append(product)
-    quantities.append(quantity)
+    # Lists to store products and their quantities
+    # Could have used a dictionary too
 
-print ("\nThese products have been added to the shopping list:")
+    # Accept Product name and Quantity
+    for x in range(n):  #n is local variable
+        product = str(input("Enter the product name:"))
+        while True:
+            try:
+                quantity = int(input('Enter the quantity of {product}'))
+            except ValueError:
+                print('Please enter a number')
+            else:
+                break
 
-for x, y in zip(products, quantities):
-    print (f"{x} x {y}")
+        # Append Product and its Quantity for every iteration
+        products.append(product)
+        quantities.append(quantity)
 
-gmail_user = email 
-gmail_password = password
+    print('These products have been added to the list:')
 
-msg = EmailMessage()
-msg['Subject'] = "Shopping List"
-msg['From'] = gmail_user
-msg['To'] = [recipient]
-message = ""
-for i in range(max(len(products), len(quantities))):
-    message = message + str(products[i]) + " x " + str(quantities[i]) + "\n"
-msg.set_content(message)
 
-try:
-    s = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    s.ehlo()
-    s.login(gmail_user, gmail_password)
-    s.send_message(msg)
-    s.quit()
+def display():
+    global products, quantities
+    #Just print out what the user entered
+    #The purpose of zip() is to map the similar index of multiple containers
+    #So that they can be used just using as single entity.
+    for x,y in zip(products, quantities):
+        print(f"{x} x {y}")
 
-    print ("\nThe email has been sent.")
 
-except:  
-    print ("\nAn error occurred.")
+def send():
+    global GMAIL_USERNAME,GMAIL_PASSWORD,recipient,products,quantities
+    # Create the container email message.
+    message=EmailMessage()
+    message['Subject']="Shopping List"
+    message['From']="Kshitij Vengurlekar"
+    message['To']=recipient
+    # m is the multiline string which will be sent in Email Body
+    m = ""
 
-print ("\nHave a nice day!")
+    # Generate m from user inbo
+    for i in range(len(products)):
+        m=m+str(products[i])+" x "+str(quantities[i])+"\n"
+
+    message.set_content(m)
+
+    try:
+        a = smtplib.SMTP_SSL(  'smtp.gmail.com', 465)
+        a.ehlo()
+        a.login(GMAIL_USERNAME,GMAIL_PASSWORD)
+        a.send_message(message)
+        a.quit()
+    except:
+        print("Error")
+    else:
+        print("Email has been Sent")
+
+get_details()
+accept_list()
+display()
+send()
+print("Thank You")
 
 exit()
